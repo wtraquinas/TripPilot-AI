@@ -11,6 +11,13 @@ from conversation.session import (
 )
 from core.constants import APP_NAME, APP_VERSION
 
+from planner.trip_state import TripState
+from planner.extractor import update_trip_state
+
+# -------------------------------------------------------
+# Page configuration
+# -------------------------------------------------------
+
 st.set_page_config(
     page_title=APP_NAME,
     page_icon="🌍",
@@ -20,65 +27,143 @@ st.set_page_config(
 st.title("🌍 TripPilot AI")
 st.caption(f"Version {APP_VERSION}")
 
-# -----------------------------
+# -------------------------------------------------------
+# Session State
+# -------------------------------------------------------
+
+if "trip_state" not in st.session_state:
+    st.session_state.trip_state = TripState()
+
+conversation = get_conversation()
+
+provider = OpenAIProvider()
+
+# -------------------------------------------------------
 # Sidebar
-# -----------------------------
+# -------------------------------------------------------
 
 with st.sidebar:
 
     st.header("Conversation")
 
     if st.button("🗑️ New Conversation"):
+
         reset_conversation()
+
+        st.session_state.trip_state = TripState()
+
         st.rerun()
 
-# -----------------------------
-# Conversation
-# -----------------------------
+# -------------------------------------------------------
+# Layout
+# -------------------------------------------------------
 
-conversation = get_conversation()
+left_col, right_col = st.columns([2, 1])
 
-provider = OpenAIProvider()
+# =======================================================
+# LEFT COLUMN
+# =======================================================
 
-# Display previous messages
+with left_col:
 
-for message in conversation:
+    st.subheader("💬 Chat")
 
-    if message.role.value == "system":
-        continue
+    # Display previous messages
 
-    with st.chat_message(message.role.value):
+    for message in conversation:
 
-        st.markdown(message.content)
+        if message.role.value == "system":
+            continue
 
-# -----------------------------
-# User input
-# -----------------------------
+        with st.chat_message(message.role.value):
 
-prompt = st.chat_input(
-    "Where would you like to travel?"
-)
+            st.markdown(message.content)
 
-if prompt:
+    # Chat input
 
-    conversation.add_user_message(prompt)
+    prompt = st.chat_input(
+        "Where would you like to travel?"
+    )
 
-    with st.chat_message("user"):
+    if prompt:
 
-        st.markdown(prompt)
+        # Save user message
 
-    with st.chat_message("assistant"):
+        conversation.add_user_message(prompt)
 
-        with st.spinner("Planning your trip..."):
+        # Update Trip State
 
-            reply = provider.chat(
-                conversation.get_messages()
-            )
+        update_trip_state(
+            st.session_state.trip_state,
+            prompt
+        )
 
-            st.markdown(reply)
+        # Show user message
 
-    conversation.add_assistant_message(
-        reply,
-        provider="OpenAI",
-        model=provider.model,
+        with st.chat_message("user"):
+
+            st.markdown(prompt)
+
+        # Generate assistant response
+
+        with st.chat_message("assistant"):
+
+            with st.spinner("Planning your trip..."):
+
+                reply = provider.chat(
+                    conversation.get_messages()
+                )
+
+                st.markdown(reply)
+
+        # Save assistant message
+
+        conversation.add_assistant_message(
+            reply,
+            provider="OpenAI",
+            model=provider.model,
+        )
+
+        # Refresh UI so the progress panel updates immediately
+
+        st.rerun()
+
+# =======================================================
+# RIGHT COLUMN
+# =======================================================
+
+with right_col:
+
+    state = st.session_state.trip_state
+
+    st.subheader("✈️ Trip Progress")
+
+    progress = state.progress()
+
+    st.progress(progress / 4)
+
+    st.write("### Destination")
+
+    st.info(state.destination or "Not provided")
+
+    st.write("### Duration")
+
+    st.info(state.duration or "Not provided")
+
+    st.write("### Interests")
+
+    if state.interests:
+        st.success(", ".join(state.interests))
+    else:
+        st.info("Not provided")
+
+    st.write("### Budget")
+
+    st.info(state.budget or "Not provided")
+
+    st.divider()
+
+    st.metric(
+        "Completion",
+        f"{progress}/4"
     )
