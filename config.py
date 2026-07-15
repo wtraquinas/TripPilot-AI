@@ -1,9 +1,38 @@
+"""
+Application configuration.
+"""
+
 import os
+
 from dotenv import load_dotenv
 
 load_dotenv()
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+try:
+    import streamlit as st
+except ImportError:
+    st = None
 
-if not OPENAI_API_KEY:
-    raise ValueError("OPENAI_API_KEY not found in .env")
+
+def get_secret(key: str, required: bool = True):
+
+    value = None
+
+    if st is not None:
+        try:
+            value = st.secrets.get(key)
+        except Exception:
+            pass
+
+    if not value:
+        value = os.getenv(key)
+
+    if required and not value:
+        raise ValueError(
+            f"Missing configuration value: {key}"
+        )
+
+    return value
+
+
+OPENAI_API_KEY = get_secret("OPENAI_API_KEY")
