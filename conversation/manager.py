@@ -1,9 +1,15 @@
+"""
+Conversation manager.
+
+Stores the conversation independently of any AI provider.
+"""
+
 from __future__ import annotations
 
 from typing import List
 
-from core.enums import Role
 from conversation.message import Message
+from core.enums import Role
 
 
 class ConversationManager:
@@ -33,22 +39,20 @@ class ConversationManager:
     def add_assistant_message(
         self,
         text: str,
-        provider=None,
-        model=None
+        provider: str | None = None,
+        model: str | None = None
     ):
 
         self._messages.append(
-
             Message(
                 role=Role.ASSISTANT,
                 content=text,
                 provider=provider,
                 model=model
             )
-
         )
 
-    def messages(self):
+    def get_messages(self) -> List[Message]:
 
         return list(self._messages)
 
@@ -56,6 +60,21 @@ class ConversationManager:
 
         self._messages.clear()
 
+    def is_empty(self) -> bool:
+
+        return len(self._messages) == 0
+
+    def last_message(self) -> Message | None:
+
+        if self.is_empty():
+            return None
+
+        return self._messages[-1]
+
     def __len__(self):
 
         return len(self._messages)
+
+    def __iter__(self):
+
+        return iter(self._messages)
