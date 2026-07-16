@@ -190,6 +190,16 @@ Markdown Export
 
 The architecture has been designed to support multiple AI providers without changing the application logic.
 
+<br>
+
+---
+
+## Memory Management
+
+The application maintains two complementary forms of memory: a conversation history that preserves context for the LLM, and a structured TripState that extracts only the information needed to plan the trip. This keeps prompts context-aware while giving the application reliable, structured data to drive itinerary generation.
+
+<br>
+
 ---
 
 ## Current Status
