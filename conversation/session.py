@@ -10,7 +10,7 @@ from conversation.manager import ConversationManager
 SESSION_KEY = "conversation"
 
 
-def get_conversation() -> ConversationManager:
+def get_conversation():
 
     if SESSION_KEY not in st.session_state:
 

@@ -4,16 +4,12 @@ Conversation message model.
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional
 
 from core.enums import Role
 
 
 @dataclass
 class Message:
-    """
-    Represents a single conversation message.
-    """
 
     role: Role
 
@@ -21,6 +17,6 @@ class Message:
 
     timestamp: datetime = field(default_factory=datetime.utcnow)
 
-    provider: Optional[str] = None
+    provider: str | None = None
 
-    model: Optional[str] = None
+    model: str | None = None

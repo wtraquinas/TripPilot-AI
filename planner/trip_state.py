@@ -37,3 +37,6 @@ class TripState:
             completed += 1
 
         return completed
+    
+    def update(self, info):
+        pass

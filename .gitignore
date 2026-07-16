@@ -1,28 +1,22 @@
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-
 # Virtual Environment
 .venv/
 venv/
 
+# Python
+__pycache__/
+*.pyc
+
 # Environment
 .env
-.env.*
-
-!.env.example
-
-# IDE
-.vscode/
-.idea/
 
 # Streamlit
-.streamlit/
+.streamlit/secrets.toml
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
 
 # Logs
 *.log
-
-# OS
-.DS_Store
-Thumbs.db

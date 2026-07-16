@@ -93,10 +93,9 @@ with left_col:
 
         # Update Trip State
 
-        update_trip_state(
-            st.session_state.trip_state,
-            prompt
-        )
+        trip_info = provider.extract_trip_info(prompt)
+
+        st.session_state.trip_state.update(trip_info)
 
         # Show user message
 

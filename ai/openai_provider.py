@@ -9,6 +9,10 @@ from config import OPENAI_API_KEY
 from conversation.message import Message
 from prompts import SYSTEM_PROMPT
 
+import json
+
+from models.trip_info import TripInfo
+from planner.ai_extractor import EXTRACTION_PROMPT
 
 class OpenAIProvider(AIProvider):
 
@@ -66,3 +70,6 @@ class OpenAIProvider(AIProvider):
         )
 
         return response.output_text
+    
+    def extract_trip_info(self, text: str):
+        raise NotImplementedError
