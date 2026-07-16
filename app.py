@@ -130,7 +130,7 @@ with st.sidebar:
 
     st.divider()
 
-    if st.session_state.trip_markdown:
+    if st.session_state.get("trip_markdown"):
 
         st.download_button(
             "📄 Export Markdown",
@@ -233,6 +233,11 @@ if user_prompt:
             )
 
             trip_state.update(extracted)
+            st.write("### DEBUG - Extracted TripInfo")
+            st.write(extracted)
+
+            st.write("### DEBUG - Current TripState")
+            st.write(trip_state)
 
             status.update(
                 label=STATUS_MESSAGES["chat"]
@@ -394,6 +399,7 @@ if user_prompt:
             # Save for sidebar download
                 st.session_state.trip = trip
                 st.session_state.trip_markdown = markdown
+                st.success("DEBUG: Markdown saved to session state")
 
             except Exception as e:
 
