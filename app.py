@@ -91,8 +91,8 @@ with st.sidebar:
     elif provider_name == AIProviderType.GEMINI.value:
 
         models = [
-            "gemini-2.5-flash",
-            "gemini-2.5-pro",
+            "gemini-3.5-flash",
+            "gemini-3.5-pro",
         ]
 
     model_name = st.selectbox(
