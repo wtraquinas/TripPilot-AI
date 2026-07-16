@@ -8,11 +8,15 @@ from google import genai
 
 from ai.base import AIProvider
 from config import GEMINI_API_KEY
-from core.prompts import SYSTEM_PROMPT, EXTRACTION_PROMPT
 from models.trip import Trip
 from models.trip_info import TripInfo
 from planner.trip_state import TripState
+from conversation.message import Message
 
+from prompts import (
+    SYSTEM_PROMPT,
+    EXTRACTION_PROMPT,
+)
 
 class GeminiProvider(AIProvider):
 
