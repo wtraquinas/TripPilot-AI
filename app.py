@@ -173,7 +173,7 @@ if conversation.is_empty():
 
     greeting = (
         "👋 Welcome to TripPilot AI! \n\n"
-        "Tell me where you'd like to travel, and I'll create a personalized itinerary just for you. "
+        "Tell me where you'd like to travel, and I'll create a personalized itinerary just for you.\n "
         "I can help with destinations, budgets, interests, travel pace, and more."
     )
 
