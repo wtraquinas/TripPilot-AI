@@ -6,7 +6,7 @@ import json
 
 from google import genai
 
-from ai.provider import AIProvider
+from ai.base import AIProvider
 from config import GEMINI_API_KEY
 from core.prompts import SYSTEM_PROMPT, EXTRACTION_PROMPT
 from models.trip import Trip
