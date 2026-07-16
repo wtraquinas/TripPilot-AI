@@ -12,6 +12,13 @@ TripPilot AI is a conversational travel assistant built with Python and Streamli
 
 The project has been designed with a modular architecture, allowing support for multiple AI providers and future integrations such as weather, maps, and web search.
 
+
+---
+## Deployed on Streamlit Cloud:
+
+https://trippilotai.streamlit.app
+
+
 ---
 
 ## Current MVP Features
