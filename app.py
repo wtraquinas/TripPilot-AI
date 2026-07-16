@@ -16,6 +16,17 @@ from planner.trip_state import TripState
 
 
 # ==========================================================
+# UI Status Messages
+# ==========================================================
+
+STATUS_MESSAGES = {
+    "extract": "🧠 Understanding your travel request...",
+    "chat": "💬 Preparing my response...",
+    "itinerary": "🗺️ Building your personalized itinerary...",
+}
+
+
+# ==========================================================
 # Page Configuration
 # ==========================================================
 
@@ -117,7 +128,7 @@ with st.sidebar:
     st.divider()
 
     if st.button(
-        "🆕 New Conversation",
+        "✈️ Start New Trip",
         use_container_width=True,
     ):
 
@@ -146,9 +157,9 @@ conversation = st.session_state.conversation
 if conversation.is_empty():
 
     greeting = (
-        "👋 Hello! I'm TripPilot AI.\n\n"
-        "Tell me where you'd like to travel, "
-        "and I'll help plan your perfect trip."
+        "👋 Welcome to TripPilot AI! \n\n"
+        "Tell me where you'd like to travel, and I'll create a personalized itinerary just for you. "
+        "I can help with destinations, budgets, interests, travel pace, and more."
     )
 
     conversation.add_assistant_message(
@@ -189,32 +200,44 @@ if user_prompt:
     provider = st.session_state.provider
     trip_state = st.session_state.trip_state
 
-    # ---------------------------------------------
-    # Extract structured trip information
-    # ---------------------------------------------
-
-    extracted = provider.extract_trip_info(user_prompt)
-
-    trip_state.update(extracted)
+    
 
     # ---------------------------------------------
     # Generate assistant reply
     # ---------------------------------------------
 
-    with st.spinner("Thinking..."):
+    status = st.empty()
 
-        try:
+    try:
 
-            reply = provider.chat(
-                conversation.get_messages()
-            )
+        status.info(
+            STATUS_MESSAGES["extract"]
+        )
 
-        except Exception as e:
+        extracted = provider.extract_trip_info(
+            user_prompt
+        )
 
-            reply = (
-                "⚠️ Sorry, something went wrong.\n\n"
-                f"{e}"
-            )
+        trip_state.update(extracted)
+
+        status.info(
+            STATUS_MESSAGES["chat"]
+        )
+
+        reply = provider.chat(
+            conversation.get_messages()
+        )
+
+    except Exception as e:
+
+        status.empty()
+
+        reply = (
+            "⚠️ Sorry, something went wrong.\n\n"
+            f"{e}"
+        )
+
+    status.empty()
 
     conversation.add_assistant_message(
         reply,
@@ -233,124 +256,130 @@ if user_prompt:
 
         st.divider()
 
-        with st.spinner(
-            "Building your personalized itinerary..."
-        ):
+        status = st.empty()
 
-            try:
+        status.info(
+            STATUS_MESSAGES["itinerary"]
+        )
 
-                trip = provider.generate_itinerary(
-                    trip_state
+        try:
+
+            trip = provider.generate_itinerary(
+                trip_state
+            )
+
+            status.empty()
+
+            st.success(
+                "🎉 Your itinerary is ready!"
+            )        
+
+            st.header(trip.title)
+
+            st.write(trip.summary)
+
+            st.subheader("📅 Day-by-day itinerary")
+
+            for day in trip.itinerary:
+
+                with st.expander(
+                    f"Day {day.day} — {day.title}",
+                    expanded=True,
+                ):
+
+                    st.markdown(
+                        f"**🌅 Morning**\n\n{day.morning}"
+                    )
+
+                    st.markdown(
+                        f"**☀️ Afternoon**\n\n{day.afternoon}"
+                    )
+
+                    st.markdown(
+                        f"**🌙 Evening**\n\n{day.evening}"
+                    )
+
+            st.subheader("💡 Travel Tips")
+
+            for tip in trip.travel_tips:
+                st.write(f"• {tip}")
+
+            st.subheader("💰 Estimated Budget")
+
+            st.metric(
+                "Estimated Total",
+                f"{trip.budget.estimated_total:.0f} {trip.budget.currency}",
+            )
+
+            if trip.budget.notes:
+
+                st.info(
+                    trip.budget.notes
                 )
 
-                st.success(
-                    "🎉 Your itinerary is ready!"
-                )
+            # -------------------------------------
+            # Markdown Export
+            # -------------------------------------
 
-                st.header(trip.title)
+            markdown = f"# {trip.title}\n\n"
 
-                st.write(trip.summary)
+            markdown += f"{trip.summary}\n\n"
 
-                st.subheader("📅 Day-by-day itinerary")
+            markdown += "## Itinerary\n\n"
 
-                for day in trip.itinerary:
-
-                    with st.expander(
-                        f"Day {day.day} — {day.title}",
-                        expanded=True,
-                    ):
-
-                        st.markdown(
-                            f"**🌅 Morning**\n\n{day.morning}"
-                        )
-
-                        st.markdown(
-                            f"**☀️ Afternoon**\n\n{day.afternoon}"
-                        )
-
-                        st.markdown(
-                            f"**🌙 Evening**\n\n{day.evening}"
-                        )
-
-                st.subheader("💡 Travel Tips")
-
-                for tip in trip.travel_tips:
-                    st.write(f"• {tip}")
-
-                st.subheader("💰 Estimated Budget")
-
-                st.metric(
-                    "Estimated Total",
-                    f"{trip.budget.estimated_total:.0f} {trip.budget.currency}",
-                )
-
-                if trip.budget.notes:
-
-                    st.info(
-                        trip.budget.notes
-                    )
-
-                # -------------------------------------
-                # Markdown Export
-                # -------------------------------------
-
-                markdown = f"# {trip.title}\n\n"
-
-                markdown += f"{trip.summary}\n\n"
-
-                markdown += "## Itinerary\n\n"
-
-                for day in trip.itinerary:
-
-                    markdown += (
-                        f"### Day {day.day} - {day.title}\n\n"
-                    )
-
-                    markdown += (
-                        f"**Morning**\n\n{day.morning}\n\n"
-                    )
-
-                    markdown += (
-                        f"**Afternoon**\n\n{day.afternoon}\n\n"
-                    )
-
-                    markdown += (
-                        f"**Evening**\n\n{day.evening}\n\n"
-                    )
-
-                markdown += "## Travel Tips\n\n"
-
-                for tip in trip.travel_tips:
-
-                    markdown += f"- {tip}\n"
-
-                markdown += "\n"
+            for day in trip.itinerary:
 
                 markdown += (
-                    f"## Estimated Budget\n\n"
+                    f"### Day {day.day} - {day.title}\n\n"
                 )
 
                 markdown += (
-                    f"{trip.budget.estimated_total:.0f} "
-                    f"{trip.budget.currency}\n"
+                    f"**Morning**\n\n{day.morning}\n\n"
                 )
 
-                if trip.budget.notes:
-
-                    markdown += (
-                        f"\n{trip.budget.notes}\n"
-                    )
-
-                st.download_button(
-                    "📄 Download Markdown",
-                    markdown,
-                    file_name="trip_plan.md",
-                    mime="text/markdown",
-                    use_container_width=True,
+                markdown += (
+                    f"**Afternoon**\n\n{day.afternoon}\n\n"
                 )
 
-            except Exception as e:
-
-                st.error(
-                    f"Unable to generate itinerary.\n\n{e}"
+                markdown += (
+                    f"**Evening**\n\n{day.evening}\n\n"
                 )
+
+            markdown += "## Travel Tips\n\n"
+
+            for tip in trip.travel_tips:
+
+                markdown += f"- {tip}\n"
+
+            markdown += "\n"
+
+            markdown += (
+                f"## Estimated Budget\n\n"
+            )
+
+            markdown += (
+                f"{trip.budget.estimated_total:.0f} "
+                f"{trip.budget.currency}\n"
+            )
+
+            if trip.budget.notes:
+
+                markdown += (
+                    f"\n{trip.budget.notes}\n"
+                )
+
+            st.download_button(
+                "📄 Download Markdown",
+                markdown,
+                file_name="trip_plan.md",
+                mime="text/markdown",
+                use_container_width=True,
+            )
+
+        except Exception as e:
+            
+            status.empty()
+
+            st.error(
+                f"Unable to generate itinerary.\n\n{e}"
+            )
