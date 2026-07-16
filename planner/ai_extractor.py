@@ -5,29 +5,55 @@ AI-powered travel information extractor.
 import json
 
 from models.trip_info import TripInfo
+from prompts import EXTRACTION_PROMPT
 
 
-EXTRACTION_PROMPT = """
-You extract travel planning information.
+class AIExtractor:
+    """
+    Uses the selected AI provider to extract
+    structured trip information from the user's
+    latest message.
+    """
 
-Return ONLY valid JSON.
+    def __init__(self, provider):
 
-Schema:
+        self.provider = provider
 
-{
-  "destination": string|null,
-  "duration": string|null,
-  "budget": string|null,
-  "interests": [string],
-  "travelers": string|null,
-  "constraints": [string]
-}
+    def extract(
+        self,
+        text: str,
+    ) -> TripInfo:
 
-Rules:
-- Understand any country or city.
-- Understand any language.
-- Normalize country and city names into English.
-- Convert durations to a readable format like "10 days" or "2 weeks".
-- If unknown, return null.
-- Do not include explanations.
-"""
+        try:
+
+            response = self.provider.client.responses.create(
+
+                model=self.provider.model,
+
+                input=[
+                    {
+                        "role": "system",
+                        "content": EXTRACTION_PROMPT,
+                    },
+                    {
+                        "role": "user",
+                        "content": text,
+                    },
+                ],
+            )
+
+            data = json.loads(
+                response.output_text
+            )
+
+            return TripInfo.model_validate(
+                data
+            )
+
+        except Exception as e:
+
+            print(
+                f"Extractor error: {e}"
+            )
+
+            return TripInfo()
