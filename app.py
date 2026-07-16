@@ -293,6 +293,107 @@ if user_prompt:
                 )
 
                 # Display itinerary here...
+                st.success(
+                    "🎉 Your itinerary is ready!"
+                )        
+
+                st.header(trip.title)
+
+                st.write(trip.summary)
+
+                st.subheader("📅 Day-by-day itinerary")
+
+                for day in trip.itinerary:
+
+                    with st.expander(
+                        f"Day {day.day} — {day.title}",
+                        expanded=True,
+                    ):
+
+                        st.markdown(
+                            f"**🌅 Morning**\n\n{day.morning}"
+                        )
+
+                        st.markdown(
+                            f"**☀️ Afternoon**\n\n{day.afternoon}"
+                        )
+
+                        st.markdown(
+                            f"**🌙 Evening**\n\n{day.evening}"
+                        )
+
+                st.subheader("💡 Travel Tips")
+
+                for tip in trip.travel_tips:
+                    st.write(f"• {tip}")
+
+                st.subheader("💰 Estimated Budget")
+
+                st.metric(
+                    "Estimated Total",
+                    f"{trip.budget.estimated_total:.0f} {trip.budget.currency}",
+                )
+
+                if trip.budget.notes:
+
+                    st.info(
+                        trip.budget.notes
+                    )
+
+                # -------------------------------------
+                # Markdown Export
+                # -------------------------------------
+
+                markdown = f"# {trip.title}\n\n"
+
+                markdown += f"{trip.summary}\n\n"
+
+                markdown += "## Itinerary\n\n"
+
+                for day in trip.itinerary:
+
+                    markdown += (
+                        f"### Day {day.day} - {day.title}\n\n"
+                    )
+
+                    markdown += (
+                        f"**Morning**\n\n{day.morning}\n\n"
+                    )
+
+                    markdown += (
+                        f"**Afternoon**\n\n{day.afternoon}\n\n"
+                    )
+
+                    markdown += (
+                        f"**Evening**\n\n{day.evening}\n\n"
+                    )
+
+                markdown += "## Travel Tips\n\n"
+
+                for tip in trip.travel_tips:
+
+                    markdown += f"- {tip}\n"
+
+                markdown += "\n"
+
+                markdown += (
+                    f"## Estimated Budget\n\n"
+                )
+
+                markdown += (
+                    f"{trip.budget.estimated_total:.0f} "
+                    f"{trip.budget.currency}\n"
+                )
+
+                if trip.budget.notes:
+
+                    markdown += (
+                        f"\n{trip.budget.notes}\n"
+                    )
+
+            # Save for sidebar download
+                st.session_state.trip = trip
+                st.session_state.trip_markdown = markdown
 
             except Exception as e:
 
@@ -300,118 +401,3 @@ if user_prompt:
                     label="❌ Unable to generate itinerary",
                     state="error",
                 )
-
-                st.error(
-                    f"Unable to generate itinerary.\n\n{e}"
-                )
-
-
-            st.success(
-                "🎉 Your itinerary is ready!"
-            )        
-
-            st.header(trip.title)
-
-            st.write(trip.summary)
-
-            st.subheader("📅 Day-by-day itinerary")
-
-            for day in trip.itinerary:
-
-                with st.expander(
-                    f"Day {day.day} — {day.title}",
-                    expanded=True,
-                ):
-
-                    st.markdown(
-                        f"**🌅 Morning**\n\n{day.morning}"
-                    )
-
-                    st.markdown(
-                        f"**☀️ Afternoon**\n\n{day.afternoon}"
-                    )
-
-                    st.markdown(
-                        f"**🌙 Evening**\n\n{day.evening}"
-                    )
-
-            st.subheader("💡 Travel Tips")
-
-            for tip in trip.travel_tips:
-                st.write(f"• {tip}")
-
-            st.subheader("💰 Estimated Budget")
-
-            st.metric(
-                "Estimated Total",
-                f"{trip.budget.estimated_total:.0f} {trip.budget.currency}",
-            )
-
-            if trip.budget.notes:
-
-                st.info(
-                    trip.budget.notes
-                )
-
-            # -------------------------------------
-            # Markdown Export
-            # -------------------------------------
-
-            markdown = f"# {trip.title}\n\n"
-
-            markdown += f"{trip.summary}\n\n"
-
-            markdown += "## Itinerary\n\n"
-
-            for day in trip.itinerary:
-
-                markdown += (
-                    f"### Day {day.day} - {day.title}\n\n"
-                )
-
-                markdown += (
-                    f"**Morning**\n\n{day.morning}\n\n"
-                )
-
-                markdown += (
-                    f"**Afternoon**\n\n{day.afternoon}\n\n"
-                )
-
-                markdown += (
-                    f"**Evening**\n\n{day.evening}\n\n"
-                )
-
-            markdown += "## Travel Tips\n\n"
-
-            for tip in trip.travel_tips:
-
-                markdown += f"- {tip}\n"
-
-            markdown += "\n"
-
-            markdown += (
-                f"## Estimated Budget\n\n"
-            )
-
-            markdown += (
-                f"{trip.budget.estimated_total:.0f} "
-                f"{trip.budget.currency}\n"
-            )
-
-            if trip.budget.notes:
-
-                markdown += (
-                    f"\n{trip.budget.notes}\n"
-                )
-
-           # Save for sidebar download
-            st.session_state.trip = trip
-            st.session_state.trip_markdown = markdown
-
-        except Exception as e:
-            
-            status.empty()
-
-            st.error(
-                f"Unable to generate itinerary.\n\n{e}"
-            )
