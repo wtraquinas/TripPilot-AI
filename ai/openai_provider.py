@@ -117,7 +117,7 @@ class OpenAIProvider(AIProvider):
 
     def extract_trip_info(
         self,
-        messages,
+        messages: list[dict],
     ) -> TripInfo:
         """
         Extract structured travel information
@@ -237,10 +237,6 @@ Schema:
                 "content": prompt,
             },
         ]
-
-        result = self._create_response(
-            messages
-        )
 
         try:
 

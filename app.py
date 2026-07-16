@@ -228,16 +228,19 @@ if user_prompt:
 
         try:
 
-            extracted = provider.extract_trip_info(
-                conversation.get_messages()
-            )
+            messages = [
+                {
+                    "role": msg.role.value,
+                    "content": msg.content,
+                }
+                for msg in conversation.get_messages()
+            ]
+
+            extracted = provider.extract_trip_info(messages)
 
             trip_state.update(extracted)
-            st.write("### DEBUG - Extracted TripInfo")
-            st.write(extracted)
-
-            st.write("### DEBUG - Current TripState")
-            st.write(trip_state)
+            st.write("Extracted:", extracted)
+            st.write("TripState:", trip_state)
 
             status.update(
                 label=STATUS_MESSAGES["chat"]
