@@ -59,148 +59,148 @@ class GeminiProvider(AIProvider):
 
     #------------- CHAT
 
-        def chat(
-            self,
-            messages,
-        ) -> str:
+    def chat(
+        self,
+        messages,
+    ) -> str:
 
-            request = [
-                {
-                    "role": "system",
-                    "content": SYSTEM_PROMPT,
-                }
-            ]
+        request = [
+            {
+                "role": "system",
+                "content": SYSTEM_PROMPT,
+            }
+        ]
 
-            request.extend(
-                self._convert_messages(messages)
-            )
+        request.extend(
+            self._convert_messages(messages)
+        )
 
-            return self._create_response(request)
+        return self._create_response(request)
     
 
     #------------- EXTRACTION
 
-        def extract_trip_info(
-            self,
-            messages,
-        ) -> TripInfo:
+    def extract_trip_info(
+        self,
+        messages,
+    ) -> TripInfo:
 
-            request = [
-                {
-                    "role": "system",
-                    "content": EXTRACTION_PROMPT,
-                }
-            ]
+        request = [
+            {
+                "role": "system",
+                "content": EXTRACTION_PROMPT,
+            }
+        ]
 
-            request.extend(
-                self._convert_messages(messages)
+        request.extend(
+            self._convert_messages(messages)
+        )
+
+        result = self._create_response(request)
+
+        try:
+
+            return TripInfo.model_validate_json(
+                result
             )
 
-            result = self._create_response(request)
+        except Exception:
 
             try:
 
-                return TripInfo.model_validate_json(
-                    result
+                return TripInfo.model_validate(
+                    json.loads(result)
                 )
 
             except Exception:
 
-                try:
-
-                    return TripInfo.model_validate(
-                        json.loads(result)
-                    )
-
-                except Exception:
-
-                    return TripInfo()
+                return TripInfo()
             
     
     # ------------ CONVERSATION
 
-        def generate_itinerary(
-            self,
-            state: TripState,
-        ) -> Trip:
+    def generate_itinerary(
+        self,
+        state: TripState,
+    ) -> Trip:
 
-            info = state.to_trip_info()
+        info = state.to_trip_info()
 
-            prompt = f"""
-    Generate a realistic travel itinerary.
+        prompt = f"""
+Generate a realistic travel itinerary.
 
-    Destination:
-    {info.destination}
+Destination:
+{info.destination}
 
-    Duration:
-    {info.duration}
+Duration:
+{info.duration}
 
-    Budget:
-    {info.budget}
+Budget:
+{info.budget}
 
-    Travelers:
-    {info.travelers}
+Travelers:
+{info.travelers}
 
-    Interests:
-    {", ".join(info.interests)}
+Interests:
+{", ".join(info.interests)}
 
-    Constraints:
-    {", ".join(info.constraints)}
+Constraints:
+{", ".join(info.constraints)}
 
-    Return ONLY valid JSON matching this schema.
+Return ONLY valid JSON matching this schema.
 
+{{
+"title": "...",
+"summary": "...",
+"itinerary": [
     {{
+    "day": 1,
     "title": "...",
-    "summary": "...",
-    "itinerary": [
-        {{
-        "day": 1,
-        "title": "...",
-        "morning": "...",
-        "afternoon": "...",
-        "evening": "..."
-        }}
-    ],
-    "travel_tips": [
-        "..."
-    ],
-    "budget": {{
-        "estimated_total": 0,
-        "currency": "EUR",
-        "notes": ""
+    "morning": "...",
+    "afternoon": "...",
+    "evening": "..."
     }}
-    }}
-    """
+],
+"travel_tips": [
+    "..."
+],
+"budget": {{
+    "estimated_total": 0,
+    "currency": "EUR",
+    "notes": ""
+}}
+}}
+"""
 
-            messages = [
-                {
-                    "role": "system",
-                    "content": (
-                        "You are an expert travel planner. "
-                        "Return ONLY valid JSON."
-                    ),
-                },
-                {
-                    "role": "user",
-                    "content": prompt,
-                },
-            ]
+        messages = [
+            {
+                "role": "system",
+                "content": (
+                    "You are an expert travel planner. "
+                    "Return ONLY valid JSON."
+                ),
+            },
+            {
+                "role": "user",
+                "content": prompt,
+            },
+        ]
 
-            result = self._create_response(
-                messages
+        result = self._create_response(
+            messages
+        )
+
+        try:
+
+            return Trip.model_validate_json(
+                result
             )
 
-            try:
+        except Exception as e:
 
-                return Trip.model_validate_json(
-                    result
-                )
-
-            except Exception as e:
-
-                raise RuntimeError(
-                    "Failed to parse itinerary."
-                ) from e
+            raise RuntimeError(
+                "Failed to parse itinerary."
+            ) from e
         
 
 
