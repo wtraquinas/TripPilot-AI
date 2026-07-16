@@ -117,26 +117,31 @@ class OpenAIProvider(AIProvider):
 
     def extract_trip_info(
         self,
-        text: str,
+        messages,
     ) -> TripInfo:
         """
         Extract structured travel information
         from the user's latest message.
         """
 
-        messages = [
+        request_messages = [
             {
                 "role": "system",
                 "content": EXTRACTION_PROMPT,
-            },
-            {
-                "role": "user",
-                "content": text,
-            },
+            }
         ]
 
+        for message in messages:
+
+            request_messages.append(
+                {
+                    "role": message.role.value,
+                    "content": message.content,
+                }
+            )
+
         result = self._create_response(
-            messages
+            request_messages
         )
 
         try:

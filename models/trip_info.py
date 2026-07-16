@@ -31,5 +31,6 @@ class TripInfo(BaseModel):
         return (
             self.destination is not None
             and self.duration is not None
+            and self.budget is not None
             and len(self.interests) > 0
         )

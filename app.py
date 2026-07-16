@@ -229,7 +229,7 @@ if user_prompt:
         try:
 
             extracted = provider.extract_trip_info(
-                user_prompt
+                conversation.get_messages()
             )
 
             trip_state.update(extracted)
