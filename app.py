@@ -20,9 +20,9 @@ from planner.trip_state import TripState
 # ==========================================================
 
 STATUS_MESSAGES = {
-    "extract": "🧠 Understanding your travel request...",
-    "chat": "💬 Preparing my response...",
-    "itinerary": "🗺️ Building your personalized itinerary...",
+    "extract": "🧠 Understanding your travel plans...",
+    "chat": "💬 Crafting personalized recommendations...",
+    "itinerary": "🗺️ Building your itinerary...",
 }
 
 
@@ -58,6 +58,9 @@ if "provider" not in st.session_state:
         st.session_state.provider_name,
         st.session_state.model_name,
     )
+
+if "trip_markdown" not in st.session_state:
+    st.session_state.trip_markdown = None
 
 # ==========================================================
 # Sidebar
@@ -127,14 +130,26 @@ with st.sidebar:
 
     st.divider()
 
+    if st.session_state.trip_markdown:
+
+        st.download_button(
+            "📄 Export Markdown",
+            data=st.session_state.trip_markdown,
+            file_name="trip_plan.md",
+            mime="text/markdown",
+            use_container_width=True,
+        )
+
     if st.button(
         "✈️ Start New Trip",
         use_container_width=True,
     ):
-
+        
         st.session_state.conversation = ConversationManager()
 
         st.session_state.trip_state = TripState()
+
+        st.session_state.trip_markdown = None
 
         st.rerun()
 
@@ -206,38 +221,43 @@ if user_prompt:
     # Generate assistant reply
     # ---------------------------------------------
 
-    status = st.empty()
+    with st.status(
+        STATUS_MESSAGES["extract"],
+        expanded=False,
+    ) as status:
 
-    try:
+        try:
 
-        status.info(
-            STATUS_MESSAGES["extract"]
-        )
+            extracted = provider.extract_trip_info(
+                user_prompt
+            )
 
-        extracted = provider.extract_trip_info(
-            user_prompt
-        )
+            trip_state.update(extracted)
 
-        trip_state.update(extracted)
+            status.update(
+                label=STATUS_MESSAGES["chat"]
+            )
 
-        status.info(
-            STATUS_MESSAGES["chat"]
-        )
+            reply = provider.chat(
+                conversation.get_messages()
+            )
 
-        reply = provider.chat(
-            conversation.get_messages()
-        )
+            status.update(
+                label="✈️ Travel plan ready!",
+                state="complete",
+            )
 
-    except Exception as e:
+        except Exception as e:
 
-        status.empty()
+            status.update(
+                label="❌ Error",
+                state="error",
+            )
 
-        reply = (
-            "⚠️ Sorry, something went wrong.\n\n"
-            f"{e}"
-        )
-
-    status.empty()
+            reply = (
+                "⚠️ Sorry, something went wrong.\n\n"
+                f"{e}"
+            )
 
     conversation.add_assistant_message(
         reply,
@@ -256,19 +276,35 @@ if user_prompt:
 
         st.divider()
 
-        status = st.empty()
+        with st.status(
+            STATUS_MESSAGES["itinerary"],
+            expanded=False,
+        ) as status:
 
-        status.info(
-            STATUS_MESSAGES["itinerary"]
-        )
+            try:
 
-        try:
+                trip = provider.generate_itinerary(
+                    trip_state
+                )
 
-            trip = provider.generate_itinerary(
-                trip_state
-            )
+                status.update(
+                    label="✈️ Travel plan ready!",
+                    state="complete",
+                )
 
-            status.empty()
+                # Display itinerary here...
+
+            except Exception as e:
+
+                status.update(
+                    label="❌ Unable to generate itinerary",
+                    state="error",
+                )
+
+                st.error(
+                    f"Unable to generate itinerary.\n\n{e}"
+                )
+
 
             st.success(
                 "🎉 Your itinerary is ready!"
@@ -368,13 +404,9 @@ if user_prompt:
                     f"\n{trip.budget.notes}\n"
                 )
 
-            st.download_button(
-                "📄 Download Markdown",
-                markdown,
-                file_name="trip_plan.md",
-                mime="text/markdown",
-                use_container_width=True,
-            )
+           # Save for sidebar download
+            st.session_state.trip = trip
+            st.session_state.trip_markdown = markdown
 
         except Exception as e:
             
