@@ -1,168 +1,356 @@
 """
 TripPilot AI
+Version 1.0
+
+Main Streamlit application.
 """
+
+from __future__ import annotations
 
 import streamlit as st
 
-from ai.openai_provider import OpenAIProvider
-from conversation.session import (
-    get_conversation,
-    reset_conversation,
-)
-from core.constants import APP_NAME, APP_VERSION
-
+from ai.factory import ProviderFactory
+from config import DEFAULT_MODEL
+from conversation.manager import ConversationManager
 from planner.trip_state import TripState
-from planner.extractor import update_trip_state
 
-# -------------------------------------------------------
-# Page configuration
-# -------------------------------------------------------
+
+# ==========================================================
+# Page Configuration
+# ==========================================================
 
 st.set_page_config(
-    page_title=APP_NAME,
-    page_icon="🌍",
+    page_title="TripPilot AI",
+    page_icon="✈️",
     layout="wide",
 )
 
-st.title("🌍 TripPilot AI")
-st.caption(f"Version {APP_VERSION}")
-
-# -------------------------------------------------------
+# ==========================================================
 # Session State
-# -------------------------------------------------------
+# ==========================================================
+
+if "conversation" not in st.session_state:
+    st.session_state.conversation = ConversationManager()
 
 if "trip_state" not in st.session_state:
     st.session_state.trip_state = TripState()
 
-conversation = get_conversation()
+if "provider_name" not in st.session_state:
+    st.session_state.provider_name = "OpenAI"
 
-provider = OpenAIProvider()
+if "model_name" not in st.session_state:
+    st.session_state.model_name = DEFAULT_MODEL
 
-# -------------------------------------------------------
+if "provider" not in st.session_state:
+
+    st.session_state.provider = ProviderFactory.create(
+        st.session_state.provider_name,
+        st.session_state.model_name,
+    )
+
+# ==========================================================
 # Sidebar
-# -------------------------------------------------------
+# ==========================================================
 
 with st.sidebar:
 
-    st.header("Conversation")
+    st.title("⚙️ Settings")
 
-    if st.button("🗑️ New Conversation"):
+    provider_name = st.selectbox(
+        "AI Provider",
+        [
+            "OpenAI",
+        ],
+        index=0,
+    )
 
-        reset_conversation()
+    model_name = st.selectbox(
+        "Model",
+        [
+            DEFAULT_MODEL,
+        ],
+        index=0,
+    )
+
+    if (
+        provider_name != st.session_state.provider_name
+        or model_name != st.session_state.model_name
+    ):
+
+        st.session_state.provider_name = provider_name
+        st.session_state.model_name = model_name
+
+        st.session_state.provider = ProviderFactory.create(
+            provider_name,
+            model_name,
+        )
+
+    st.divider()
+
+    st.subheader("Trip Progress")
+
+    trip = st.session_state.trip_state
+
+    progress = trip.progress()
+
+    st.progress(progress / 4)
+
+    def check(value):
+        return "✅" if value else "⬜"
+
+    st.write(
+        f"{check(trip.destination)} Destination"
+    )
+
+    st.write(
+        f"{check(trip.duration)} Duration"
+    )
+
+    st.write(
+        f"{check(bool(trip.interests))} Interests"
+    )
+
+    st.write(
+        f"{check(trip.budget)} Budget"
+    )
+
+    st.divider()
+
+    if st.button(
+        "🆕 New Conversation",
+        use_container_width=True,
+    ):
+
+        st.session_state.conversation = ConversationManager()
 
         st.session_state.trip_state = TripState()
 
         st.rerun()
 
-# -------------------------------------------------------
-# Layout
-# -------------------------------------------------------
+# ==========================================================
+# Main Page
+# ==========================================================
 
-left_col, right_col = st.columns([2, 1])
+st.title("✈️ TripPilot AI")
 
-# =======================================================
-# LEFT COLUMN
-# =======================================================
+st.caption(
+    "Your AI-powered travel planning assistant."
+)
 
-with left_col:
+conversation = st.session_state.conversation
 
-    st.subheader("💬 Chat")
+# ==========================================================
+# Initial Greeting
+# ==========================================================
 
-    # Display previous messages
+if conversation.is_empty():
 
-    for message in conversation:
-
-        if message.role.value == "system":
-            continue
-
-        with st.chat_message(message.role.value):
-
-            st.markdown(message.content)
-
-    # Chat input
-
-    prompt = st.chat_input(
-        "Where would you like to travel?"
+    greeting = (
+        "👋 Hello! I'm TripPilot AI.\n\n"
+        "Tell me where you'd like to travel, "
+        "and I'll help plan your perfect trip."
     )
 
-    if prompt:
+    conversation.add_assistant_message(
+        greeting
+    )
 
-        # Save user message
+# ==========================================================
+# Chat History
+# ==========================================================
 
-        conversation.add_user_message(prompt)
+for message in conversation.get_messages():
 
-        # Update Trip State
+    with st.chat_message(
+        message.role.value
+    ):
 
-        trip_info = provider.extract_trip_info(prompt)
+        st.markdown(message.content)
 
-        st.session_state.trip_state.update(trip_info)
+# ==========================================================
+# Chat Input
+# ==========================================================
 
-        # Show user message
+user_prompt = st.chat_input(
+    "Where would you like to travel?"
+)
 
-        with st.chat_message("user"):
+# ==========================================================
+# Handle User Input
+# ==========================================================
 
-            st.markdown(prompt)
+if user_prompt:
 
-        # Generate assistant response
+    conversation.add_user_message(user_prompt)
 
-        with st.chat_message("assistant"):
+    with st.chat_message("user"):
+        st.markdown(user_prompt)
 
-            with st.spinner("Planning your trip..."):
+    provider = st.session_state.provider
+    trip_state = st.session_state.trip_state
 
-                reply = provider.chat(
-                    conversation.get_messages()
+    # ---------------------------------------------
+    # Extract structured trip information
+    # ---------------------------------------------
+
+    extracted = provider.extract_trip_info(user_prompt)
+
+    trip_state.update(extracted)
+
+    # ---------------------------------------------
+    # Generate assistant reply
+    # ---------------------------------------------
+
+    with st.spinner("Thinking..."):
+
+        try:
+
+            reply = provider.chat(
+                conversation.get_messages()
+            )
+
+        except Exception as e:
+
+            reply = (
+                "⚠️ Sorry, something went wrong.\n\n"
+                f"{e}"
+            )
+
+    conversation.add_assistant_message(
+        reply,
+        provider=st.session_state.provider_name,
+        model=st.session_state.model_name,
+    )
+
+    with st.chat_message("assistant"):
+        st.markdown(reply)
+
+    # ---------------------------------------------
+    # Automatically generate itinerary
+    # ---------------------------------------------
+
+    if trip_state.is_complete():
+
+        st.divider()
+
+        with st.spinner(
+            "Building your personalized itinerary..."
+        ):
+
+            try:
+
+                trip = provider.generate_itinerary(
+                    trip_state
                 )
 
-                st.markdown(reply)
+                st.success(
+                    "🎉 Your itinerary is ready!"
+                )
 
-        # Save assistant message
+                st.header(trip.title)
 
-        conversation.add_assistant_message(
-            reply,
-            provider="OpenAI",
-            model=provider.model,
-        )
+                st.write(trip.summary)
 
-        # Refresh UI so the progress panel updates immediately
+                st.subheader("📅 Day-by-day itinerary")
 
-        st.rerun()
+                for day in trip.itinerary:
 
-# =======================================================
-# RIGHT COLUMN
-# =======================================================
+                    with st.expander(
+                        f"Day {day.day} — {day.title}",
+                        expanded=True,
+                    ):
 
-with right_col:
+                        st.markdown(
+                            f"**🌅 Morning**\n\n{day.morning}"
+                        )
 
-    state = st.session_state.trip_state
+                        st.markdown(
+                            f"**☀️ Afternoon**\n\n{day.afternoon}"
+                        )
 
-    st.subheader("✈️ Trip Progress")
+                        st.markdown(
+                            f"**🌙 Evening**\n\n{day.evening}"
+                        )
 
-    progress = state.progress()
+                st.subheader("💡 Travel Tips")
 
-    st.progress(progress / 4)
+                for tip in trip.travel_tips:
+                    st.write(f"• {tip}")
 
-    st.write("### Destination")
+                st.subheader("💰 Estimated Budget")
 
-    st.info(state.destination or "Not provided")
+                st.metric(
+                    "Estimated Total",
+                    f"{trip.budget.estimated_total:.0f} {trip.budget.currency}",
+                )
 
-    st.write("### Duration")
+                if trip.budget.notes:
 
-    st.info(state.duration or "Not provided")
+                    st.info(
+                        trip.budget.notes
+                    )
 
-    st.write("### Interests")
+                # -------------------------------------
+                # Markdown Export
+                # -------------------------------------
 
-    if state.interests:
-        st.success(", ".join(state.interests))
-    else:
-        st.info("Not provided")
+                markdown = f"# {trip.title}\n\n"
 
-    st.write("### Budget")
+                markdown += f"{trip.summary}\n\n"
 
-    st.info(state.budget or "Not provided")
+                markdown += "## Itinerary\n\n"
 
-    st.divider()
+                for day in trip.itinerary:
 
-    st.metric(
-        "Completion",
-        f"{progress}/4"
-    )
+                    markdown += (
+                        f"### Day {day.day} - {day.title}\n\n"
+                    )
+
+                    markdown += (
+                        f"**Morning**\n\n{day.morning}\n\n"
+                    )
+
+                    markdown += (
+                        f"**Afternoon**\n\n{day.afternoon}\n\n"
+                    )
+
+                    markdown += (
+                        f"**Evening**\n\n{day.evening}\n\n"
+                    )
+
+                markdown += "## Travel Tips\n\n"
+
+                for tip in trip.travel_tips:
+
+                    markdown += f"- {tip}\n"
+
+                markdown += "\n"
+
+                markdown += (
+                    f"## Estimated Budget\n\n"
+                )
+
+                markdown += (
+                    f"{trip.budget.estimated_total:.0f} "
+                    f"{trip.budget.currency}\n"
+                )
+
+                if trip.budget.notes:
+
+                    markdown += (
+                        f"\n{trip.budget.notes}\n"
+                    )
+
+                st.download_button(
+                    "📄 Download Markdown",
+                    markdown,
+                    file_name="trip_plan.md",
+                    mime="text/markdown",
+                    use_container_width=True,
+                )
+
+            except Exception as e:
+
+                st.error(
+                    f"Unable to generate itinerary.\n\n{e}"
+                )
