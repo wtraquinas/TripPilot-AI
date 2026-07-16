@@ -117,28 +117,22 @@ class OpenAIProvider(AIProvider):
 
     def extract_trip_info(
         self,
-        messages: list[dict],
+        messages,
     ) -> TripInfo:
         """
         Extract structured travel information
         from the user's latest message.
         """
 
-        request_messages = [
+        request_messages = self._convert_messages(messages)
+
+        request_messages.insert(
+            0,
             {
                 "role": "system",
                 "content": EXTRACTION_PROMPT,
-            }
-        ]
-
-        for message in messages:
-
-            request_messages.append(
-                {
-                    "role": message.role.value,
-                    "content": message.content,
-                }
-            )
+            },
+        )
 
         result = self._create_response(
             request_messages
@@ -177,52 +171,52 @@ class OpenAIProvider(AIProvider):
         info = state.to_trip_info()
 
         prompt = f"""
-Generate a realistic travel itinerary.
+    Generate a realistic travel itinerary.
 
-Destination:
-{info.destination}
+    Destination:
+    {info.destination}
 
-Duration:
-{info.duration}
+    Duration:
+    {info.duration}
 
-Budget:
-{info.budget}
+    Budget:
+    {info.budget}
 
-Travelers:
-{info.travelers}
+    Travelers:
+    {info.travelers}
 
-Interests:
-{", ".join(info.interests)}
+    Interests:
+    {", ".join(info.interests)}
 
-Constraints:
-{", ".join(info.constraints)}
+    Constraints:
+    {", ".join(info.constraints)}
 
-Return ONLY valid JSON.
+    Return ONLY valid JSON.
 
-Schema:
+    Schema:
 
-{{
-  "title": "...",
-  "summary": "...",
-  "itinerary": [
     {{
-      "day": 1,
-      "title": "...",
-      "morning": "...",
-      "afternoon": "...",
-      "evening": "..."
+    "title": "...",
+    "summary": "...",
+    "itinerary": [
+        {{
+        "day": 1,
+        "title": "...",
+        "morning": "...",
+        "afternoon": "...",
+        "evening": "..."
+        }}
+    ],
+    "travel_tips": [
+        "..."
+    ],
+    "budget": {{
+        "estimated_total": 0,
+        "currency": "EUR",
+        "notes": ""
     }}
-  ],
-  "travel_tips": [
-      "..."
-  ],
-  "budget": {{
-      "estimated_total": 0,
-      "currency": "EUR",
-      "notes": ""
-  }}
-}}
-"""
+    }}
+    """
 
         messages = [
             {
@@ -238,11 +232,12 @@ Schema:
             },
         ]
 
+        # ← THIS LINE WAS MISSING
+        result = self._create_response(messages)
+
         try:
 
-            return Trip.model_validate_json(
-                result
-            )
+            return Trip.model_validate_json(result)
 
         except Exception as e:
 

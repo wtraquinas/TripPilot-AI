@@ -228,15 +228,9 @@ if user_prompt:
 
         try:
 
-            messages = [
-                {
-                    "role": msg.role.value,
-                    "content": msg.content,
-                }
-                for msg in conversation.get_messages()
-            ]
-
-            extracted = provider.extract_trip_info(messages)
+            extracted = provider.extract_trip_info(
+                conversation.get_messages()
+            )
 
             trip_state.update(extracted)
             st.write("Extracted:", extracted)
