@@ -97,6 +97,11 @@ class GeminiProvider(AIProvider):
         )
 
         result = self._create_response(request)
+        
+        print("=" * 50)
+        print("Gemini extraction:")
+        print(result)
+        print("=" * 50)
 
         try:
 
