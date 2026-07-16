@@ -11,7 +11,10 @@ class Role(str, Enum):
     ASSISTANT = "assistant"
 
 
-class Provider(str, Enum):
+class AIProviderType(Enum):
+
     OPENAI = "OpenAI"
+
     GEMINI = "Gemini"
+
     MISTRAL = "Mistral"

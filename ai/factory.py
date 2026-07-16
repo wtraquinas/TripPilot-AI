@@ -5,46 +5,23 @@ Creates the requested AI provider.
 """
 
 from ai.openai_provider import OpenAIProvider
-
+from core.enums import AIProviderType
+from ai.gemini_provider import GeminiProvider
 
 class ProviderFactory:
-    """
-    Creates AI providers.
-
-    Version 1.0:
-        - OpenAI
-
-    Version 1.1:
-        - Gemini
-        - Mistral
-    """
 
     @staticmethod
     def create(
         provider_name: str,
-        model: str,
+        model_name: str,
     ):
-        """
-        Create an AI provider.
 
-        Parameters
-        ----------
-        provider_name : str
-            Selected provider.
+        if provider_name == AIProviderType.OPENAI.value:
+            return OpenAIProvider(model_name)
 
-        model : str
-            Model name.
-
-        Returns
-        -------
-        AIProvider
-        """
-
-        provider = provider_name.lower()
-
-        if provider == "openai":
-            return OpenAIProvider(model)
+        if provider_name == AIProviderType.GEMINI.value:
+            return GeminiProvider(model_name)
 
         raise ValueError(
-            f"Unsupported provider: {provider_name}"
+            f"Unknown provider: {provider_name}"
         )

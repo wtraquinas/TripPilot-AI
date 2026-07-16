@@ -7,6 +7,7 @@ Main Streamlit application.
 
 from __future__ import annotations
 
+from core.enums import AIProviderType
 import streamlit as st
 
 from ai.factory import ProviderFactory
@@ -73,17 +74,30 @@ with st.sidebar:
     provider_name = st.selectbox(
         "AI Provider",
         [
-            "OpenAI",
+            AIProviderType.OPENAI.value,
+            AIProviderType.GEMINI.value,
         ],
         index=0,
     )
 
+    if provider_name == AIProviderType.OPENAI.value:
+
+        models = [
+            "gpt-5.5",
+            "gpt-5.5-mini",
+            "gpt-5.5-nano",
+        ]
+
+    elif provider_name == AIProviderType.GEMINI.value:
+
+        models = [
+            "gemini-2.5-flash",
+            "gemini-2.5-pro",
+        ]
+
     model_name = st.selectbox(
         "Model",
-        [
-            DEFAULT_MODEL,
-        ],
-        index=0,
+        models,
     )
 
     if (
