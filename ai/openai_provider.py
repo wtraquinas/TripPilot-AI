@@ -21,6 +21,9 @@ from prompts import (
     EXTRACTION_PROMPT,
 )
 
+from models.usage import Usage
+from utils.pricing import estimate_cost
+
 
 class OpenAIProvider(AIProvider):
     """
@@ -42,7 +45,7 @@ class OpenAIProvider(AIProvider):
         self.client = self._create_client()
 
         self.last_usage = None
-        
+
     def _create_client(self):
         return OpenAI(
             api_key=OPENAI_API_KEY
