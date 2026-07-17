@@ -46,6 +46,8 @@ OPENAI_API_KEY = get_secret("OPENAI_API_KEY")
 
 GEMINI_API_KEY = get_secret("GEMINI_API_KEY")
 
+AIAND_API_KEY = get_secret("AIAND_API_KEY")
+
 QWEN_API_KEY = get_secret("QWEN_API_KEY")
 
 

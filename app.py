@@ -76,6 +76,7 @@ with st.sidebar:
         [
             AIProviderType.OPENAI.value,
             AIProviderType.GEMINI.value,
+            AIProviderType.AIAND.value,
             AIProviderType.QWEN.value,
         ],
         index=0,
@@ -92,14 +93,20 @@ with st.sidebar:
         "gemini-3.5-pro",
     ]
 
+    AIAND_MODELS = [
+        "qwen/qwen3.6-27b",
+    ]
+
     QWEN_MODELS = [
-        "qwen3.6-27b",
+        "qwen3.7-max",
     ]
 
     if provider_name == AIProviderType.OPENAI.value:
         models = OPENAI_MODELS
     elif provider_name == AIProviderType.GEMINI.value:
         models = GEMINI_MODELS
+    elif provider_name == AIProviderType.AIAND.value:
+        models = AIAND_MODELS
     elif provider_name == AIProviderType.QWEN.value:
         models = QWEN_MODELS
 

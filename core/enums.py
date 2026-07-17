@@ -17,4 +17,6 @@ class AIProviderType(Enum):
 
     GEMINI = "Gemini"
 
+    AIAND = "AI&"
+
     QWEN = "Qwen"
