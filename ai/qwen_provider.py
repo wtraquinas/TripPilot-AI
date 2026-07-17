@@ -40,8 +40,7 @@ class QwenProvider(OpenAIProvider):
         self.client = OpenAI(
             api_key=QWEN_API_KEY,
             base_url=(
-                "https://dashscope-intl.aliyuncs.com/"
-                "api/v2/apps/protocols/compatible-mode/v1"
+                "https://api.aiand.com/v1"
             ),
         )
 
