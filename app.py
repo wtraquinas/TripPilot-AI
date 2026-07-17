@@ -76,24 +76,32 @@ with st.sidebar:
         [
             AIProviderType.OPENAI.value,
             AIProviderType.GEMINI.value,
+            AIProviderType.QWEN.value,
         ],
         index=0,
     )
 
+    OPENAI_MODELS = [
+        "gpt-5.5",
+        "gpt-5.5-mini",
+        "gpt-5.5-nano",
+    ]
+
+    GEMINI_MODELS = [
+        "gemini-3.5-flash",
+        "gemini-3.5-pro",
+    ]
+
+    QWEN_MODELS = [
+        "qwen3.7-plus",
+    ]
+
     if provider_name == AIProviderType.OPENAI.value:
-
-        models = [
-            "gpt-5.5",
-            "gpt-5.5-mini",
-            "gpt-5.5-nano",
-        ]
-
+        models = OPENAI_MODELS
     elif provider_name == AIProviderType.GEMINI.value:
-
-        models = [
-            "gemini-3.5-flash",
-            "gemini-3.5-pro",
-        ]
+        models = GEMINI_MODELS
+    elif provider_name == AIProviderType.QWEN.value:
+        models = QWEN_MODELS
 
     model_name = st.selectbox(
         "Model",

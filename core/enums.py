@@ -17,4 +17,4 @@ class AIProviderType(Enum):
 
     GEMINI = "Gemini"
 
-    MISTRAL = "Mistral"
+    QWEN = "Qwen"

@@ -1,7 +1,5 @@
 """
-OpenAI provider implementation.
-
-Uses the OpenAI Responses API.
+Qwen provider.
 """
 
 from __future__ import annotations
@@ -11,7 +9,6 @@ import json
 from openai import OpenAI
 
 from ai.base import AIProvider
-from config import OPENAI_API_KEY
 from conversation.message import Message
 from models.trip import Trip
 from models.trip_info import TripInfo
@@ -22,48 +19,32 @@ from prompts import (
 )
 
 
-class OpenAIProvider(AIProvider):
-    """
-    OpenAI implementation of AIProvider.
-    """
+from ai.openai_provider import OpenAIProvider
+from config import QWEN_API_KEY
+
+
+class QwenProvider(OpenAIProvider):
 
     def __init__(
         self,
-        model: str = "gpt-5",
+        model: str = "qwen3.7-plus",
     ):
 
         super().__init__(model)
 
-        if not OPENAI_API_KEY:
+        if not QWEN_API_KEY:
             raise ValueError(
-                "OPENAI_API_KEY was not found."
+                "QWEN_API_KEY was not found."
             )
-        
-        self.client = self._create_client()
 
-    def _create_client(self):
-        return OpenAI(
-            api_key=OPENAI_API_KEY
+        self.client = OpenAI(
+            api_key=QWEN_API_KEY,
+            base_url=(
+                "https://dashscope-intl.aliyuncs.com/"
+                "api/v2/apps/protocols/compatible-mode/v1"
+            ),
         )
 
-    # -----------------------------------------------------
-    # Private helper
-    # -----------------------------------------------------
-
-    def _create_response(
-        self,
-        messages: list[dict],
-    ) -> str:
-        """
-        Calls the OpenAI Responses API and returns text.
-        """
-
-        response = self.client.responses.create(
-            model=self.model,
-            input=messages,
-        )
-
-        return response.output_text.strip()
 
     # -----------------------------------------------------
     # Helpers
@@ -247,3 +228,4 @@ class OpenAIProvider(AIProvider):
             raise RuntimeError(
                 "Failed to parse itinerary."
             ) from e
+
