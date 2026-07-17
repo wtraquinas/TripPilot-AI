@@ -129,13 +129,10 @@ class OpenAIProvider(AIProvider):
 
         request_messages = self._convert_messages(messages)
 
-        request_messages.insert(
-            0,
-            {
-                "role": "system",
-                "content": EXTRACTION_PROMPT,
-            },
-        )
+        request_messages[0] = {
+            "role": "system",
+            "content": EXTRACTION_PROMPT,
+        }
 
         result = self._create_response(
             request_messages
