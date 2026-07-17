@@ -27,7 +27,7 @@ class QwenProvider(OpenAIProvider):
 
     def __init__(
         self,
-        model: str = "qwen3.7-plus",
+        model: str = "qwen3.6-27b",
     ):
 
         super().__init__(model)

@@ -93,7 +93,7 @@ with st.sidebar:
     ]
 
     QWEN_MODELS = [
-        "qwen3.7-plus",
+        "qwen3.6-27b",
     ]
 
     if provider_name == AIProviderType.OPENAI.value:
