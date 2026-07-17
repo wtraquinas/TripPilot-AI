@@ -235,7 +235,8 @@ if conversation.is_empty():
     greeting = (
         "👋 Welcome to TripPilot AI! \n\n"
         "Tell me where you'd like to travel, and I'll create a personalized itinerary just for you.\n\n "
-        "I can help with destinations, budgets, interests, travel pace, and more."
+        "I can help with destinations, budgets, interests, travel pace, and more.\n\n "
+        " ( eg. Palermo, 5 days, history, 600 euros for expenses ) "
     )
 
     conversation.add_assistant_message(
