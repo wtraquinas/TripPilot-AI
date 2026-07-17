@@ -41,6 +41,8 @@ class OpenAIProvider(AIProvider):
         
         self.client = self._create_client()
 
+        self.last_usage = None
+        
     def _create_client(self):
         return OpenAI(
             api_key=OPENAI_API_KEY
@@ -63,6 +65,13 @@ class OpenAIProvider(AIProvider):
             input=messages,
         )
 
+        usage = response.usage
+
+        self.last_usage = Usage(
+            input_tokens=usage.input_tokens,
+            output_tokens=usage.output_tokens,
+            total_tokens=usage.total_tokens,
+        )
         return response.output_text.strip()
 
     # -----------------------------------------------------

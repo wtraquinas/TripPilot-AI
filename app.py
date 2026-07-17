@@ -173,6 +173,37 @@ with st.sidebar:
         use_container_width=True,
     ):
         
+    usage = getattr(
+        st.session_state.provider,
+        "last_usage",
+        None,
+    )
+
+    if usage:
+
+        st.subheader("🤖 AI Usage")
+
+        st.metric(
+            "Input Tokens",
+            f"{usage.input_tokens:,}",
+        )
+
+        st.metric(
+            "Output Tokens",
+            f"{usage.output_tokens:,}",
+        )
+
+        st.metric(
+            "Total Tokens",
+            f"{usage.total_tokens:,}",
+        )
+
+        st.metric(
+            "Estimated Cost",
+            f"€{usage.estimated_cost:.5f}",
+        )
+
+
         st.session_state.conversation = ConversationManager()
 
         st.session_state.trip_state = TripState()
