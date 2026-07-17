@@ -77,7 +77,6 @@ with st.sidebar:
             AIProviderType.OPENAI.value,
             AIProviderType.GEMINI.value,
             AIProviderType.AIAND.value,
-            AIProviderType.QWEN.value,
         ],
         index=0,
     )
