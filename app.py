@@ -168,10 +168,7 @@ with st.sidebar:
             use_container_width=True,
         )
 
-    if st.button(
-        "✈️ Start New Trip",
-        use_container_width=True,
-    ):
+    
         
     usage = getattr(
         st.session_state.provider,
@@ -203,6 +200,11 @@ with st.sidebar:
             f"€{usage.estimated_cost:.5f}",
         )
 
+
+    if st.button(
+        "✈️ Start New Trip",
+        use_container_width=True,
+    ):
 
         st.session_state.conversation = ConversationManager()
 
