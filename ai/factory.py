@@ -8,7 +8,7 @@ from ai.openai_provider import OpenAIProvider
 from core.enums import AIProviderType
 from ai.gemini_provider import GeminiProvider
 from ai.qwen_provider import QwenProvider
-
+from ai.aiand_provider import AIAndProvider
 
 class ProviderFactory:
 
@@ -23,6 +23,9 @@ class ProviderFactory:
 
         if provider_name == AIProviderType.GEMINI.value:
             return GeminiProvider(model_name)
+        
+        if provider_name == AIProviderType.AIAND.value:
+            return AIAndProvider(model_name)
 
         if provider_name == AIProviderType.QWEN.value:
             return QwenProvider(model_name)
