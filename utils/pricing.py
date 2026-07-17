@@ -44,8 +44,3 @@ def estimate_cost(
     ) / 1_000_000
 
 
-self.last_usage.estimated_cost = estimate_cost(
-    self.model,
-    usage.input_tokens,
-    usage.output_tokens,
-)

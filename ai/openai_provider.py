@@ -75,6 +75,14 @@ class OpenAIProvider(AIProvider):
             output_tokens=usage.output_tokens,
             total_tokens=usage.total_tokens,
         )
+
+        self.last_usage.estimated_cost = estimate_cost(
+            self.model,
+            usage.input_tokens,
+            usage.output_tokens,
+        )
+        
+
         return response.output_text.strip()
 
     # -----------------------------------------------------
