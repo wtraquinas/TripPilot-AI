@@ -1,5 +1,7 @@
 """
-AI Providers.
+AI Providers Package
+"""
+
 """
 
 from .base import AIProvider
@@ -9,3 +11,5 @@ __all__ = [
     "AIProvider",
     "OpenAIProvider",
 ]
+
+"""
